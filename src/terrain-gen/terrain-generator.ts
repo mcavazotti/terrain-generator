@@ -1,6 +1,6 @@
 import { DoubleSide, Mesh, MeshStandardMaterial, Vector3Tuple } from "three";
 import { MarchingCubes } from "./marching-cubes";
-import { trigSurface } from "./fill-functions";
+import { perlin, trigSurface } from "./fill-functions";
 import { Grid } from "./types";
 
 
@@ -17,11 +17,12 @@ export function generateChunk(id: Vector3Tuple, chunkSize: Vector3Tuple = [25, 2
     }
 
     // simplePlane(grid, 0.1);
-    trigSurface(grid, id, 1, 1, 2, resolution);
+    // trigSurface(grid, id, 1, 1, 2, resolution);
+    perlin(grid,id,resolution);
     const geometry = (new MarchingCubes()).generateSurface(grid, resolution);
     const mesh = new Mesh(geometry, new MeshStandardMaterial({ color: 0x886644 }));
     // mesh.material.wireframe = true;
-    // mesh.material.flatShading = true;
+    mesh.material.flatShading = true;
     mesh.material.side = DoubleSide;
 
     mesh.position.set(...id);

@@ -1,4 +1,4 @@
-import { Color, GridHelper, HemisphereLight,PerspectiveCamera, Scene, WebGLRenderer } from "three";
+import { Color, GridHelper, HemisphereLight, PerspectiveCamera, Scene, WebGLRenderer } from "three";
 import { OrbitControls } from "../third_party/OrbitControls";
 import { generateChunk } from "../terrain-gen/terrain-generator";
 
@@ -17,21 +17,34 @@ export class Runner {
         this.scene.background = new Color(0x444444);
         this.camera = new PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
         this.camera.position.z = 10;
-        this.camera.position.y = 15;
+        this.camera.position.y = 50;
 
         this.cameraControl = new OrbitControls(this.camera, this.renderer.domElement);
         this.cameraControl = new OrbitControls(this.camera, this.renderer.domElement);
 
-        const land1 = generateChunk([0, 0, 0], [10,10,10],1)
-        const land2 = generateChunk([-9.5, 0, 0], [10,10,10],2)
-        const land3 = generateChunk([-9.5, 0, -9.5], [10,10,10],4)
-        const land4 = generateChunk([0, 0, -9.5], [10,10,10],8)
-        this.scene.add(land1);
-        this.scene.add(land2);
-        this.scene.add(land3);
-        this.scene.add(land4);
+        // const land1 = generateChunk([0, 25, 0], [100, 100, 100], 0.5)
+        // const land2 = generateChunk([0, 25, -99], [100, 100, 100], 0.5)
+        // const land3 = generateChunk([-99, 25, 0], [100, 100, 100], 0.5)
+        // const land4 = generateChunk([-99, 25, -99], [100, 100, 100], 0.5)
+        // const land2 = generateChunk([-9.5, 0, 0], [10,10,10],2)
+        // const land3 = generateChunk([-9.5, 0, -9.5], [10,10,10],4)
+        // const land4 = generateChunk([0, 0, -9.5], [10,10,10],8)
+        // this.scene.add(land1);
+        // this.scene.add(land2);
+        // this.scene.add(land3);
+        // this.scene.add(land4);
+
+        for (let x = 0; x < 10; x++) {
+            for (let y = 0; y < 3; y++) {
+                for (let z = 0; z < 10; z++) {
+                    const land = generateChunk([-5 * 99 + x * 99, y * 99, -5 * 99 + z * 99],[100,100,100],0.5);
+                    this.scene.add(land);
+                }
+            }
+        }
+
         const light = new HemisphereLight(0x004444);
-        light.position.set(5,-5,0);
+        light.position.set(5, -5, 0);
         this.scene.add(light);
         this.scene.add(new GridHelper(10, 11));
         // this.scene.add(new Mesh(new SphereGeometry(), new MeshStandardMaterial({ color: 0x006644 }) ))
