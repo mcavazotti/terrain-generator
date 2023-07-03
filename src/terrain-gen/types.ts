@@ -1,0 +1,1 @@
+export type Grid = Array<Array<Array<number>>>;
