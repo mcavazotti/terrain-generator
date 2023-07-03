@@ -24,8 +24,8 @@ export class Runner {
 
         const land1 = generateChunk([0, 0, 0], [10,10,10],1)
         const land2 = generateChunk([-9.5, 0, 0], [10,10,10],2)
-        const land3 = generateChunk([-9.5, 0, -9.5], [10,10,10],3)
-        const land4 = generateChunk([0, 0, -9.5], [10,10,10],4)
+        const land3 = generateChunk([-9.5, 0, -9.5], [10,10,10],4)
+        const land4 = generateChunk([0, 0, -9.5], [10,10,10],8)
         this.scene.add(land1);
         this.scene.add(land2);
         this.scene.add(land3);

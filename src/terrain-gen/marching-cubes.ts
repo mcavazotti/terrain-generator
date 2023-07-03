@@ -35,51 +35,51 @@ export class MarchingCubes {
                         switch (edgeId) {
                             case 0:
                                 k = this.convertCoordToKey([2 * x + 1, 2 * y, 2 * z]);
-                                position = [scaledX + 0.5 / resolution, scaledY, scaledZ];
+                                position = [scaledX + this.interpolate(v0, v1, threshold) / resolution, scaledY, scaledZ];
                                 break;
                             case 1:
                                 k = this.convertCoordToKey([2 * x + 2, 2 * y + 1, 2 * z]);
-                                position = [scaledX + 1 / resolution, scaledY + 0.5 / resolution, scaledZ];
+                                position = [scaledX + 1 / resolution, scaledY + this.interpolate(v1, v3, threshold) / resolution, scaledZ];
                                 break;
                             case 2:
                                 k = this.convertCoordToKey([2 * x + 1, 2 * y + 2, 2 * z]);
-                                position = [scaledX + 0.5 / resolution, scaledY + 1 / resolution, scaledZ];
+                                position = [scaledX + this.interpolate(v2, v3, threshold) / resolution, scaledY + 1 / resolution, scaledZ];
                                 break;
                             case 3:
                                 k = this.convertCoordToKey([2 * x, 2 * y + 1, 2 * z]);
-                                position = [scaledX, scaledY + 0.5 / resolution, scaledZ];
+                                position = [scaledX, scaledY + this.interpolate(v0, v2, threshold) / resolution, scaledZ];
                                 break;
                             case 4:
                                 k = this.convertCoordToKey([2 * x, 2 * y, 2 * z + 2]);
-                                position = [scaledX + 0.5 / resolution, scaledY, scaledZ + 1 / resolution];
+                                position = [scaledX + this.interpolate(v4, v5, threshold) / resolution, scaledY, scaledZ + 1 / resolution];
                                 break;
                             case 5:
                                 k = this.convertCoordToKey([2 * x + 2, 2 * y + 1, 2 * z + 2]);
-                                position = [scaledX + 1 / resolution, scaledY + 0.5 / resolution, scaledZ + 1 / resolution];
+                                position = [scaledX + 1 / resolution, scaledY + this.interpolate(v5, v7, threshold) / resolution, scaledZ + 1 / resolution];
                                 break;
                             case 6:
                                 k = this.convertCoordToKey([2 * x + 1, 2 * y + 2, 2 * z + 2]);
-                                position = [scaledX + 0.5 / resolution, scaledY + 1 / resolution, scaledZ + 1 / resolution];
+                                position = [scaledX + this.interpolate(v6, v7, threshold) / resolution, scaledY + 1 / resolution, scaledZ + 1 / resolution];
                                 break;
                             case 7:
                                 k = this.convertCoordToKey([2 * x, 2 * y + 1, 2 * z + 2]);
-                                position = [scaledX, scaledY + 0.5 / resolution, scaledZ + 1 / resolution];
+                                position = [scaledX, scaledY + this.interpolate(v4, v6, threshold) / resolution, scaledZ + 1 / resolution];
                                 break;
                             case 8:
                                 k = this.convertCoordToKey([2 * x, 2 * y, 2 * z + 1]);
-                                position = [scaledX, scaledY, scaledZ + 0.5 / resolution];
+                                position = [scaledX, scaledY, scaledZ + this.interpolate(v0, v4, threshold) / resolution];
                                 break;
                             case 9:
                                 k = this.convertCoordToKey([2 * x + 2, 2 * y, 2 * z + 1]);
-                                position = [scaledX + 1 / resolution, scaledY, scaledZ + 0.5 / resolution];
+                                position = [scaledX + 1 / resolution, scaledY, scaledZ + this.interpolate(v1, v5, threshold) / resolution];
                                 break;
                             case 10:
                                 k = this.convertCoordToKey([2 * x + 2, 2 * y + 2, 2 * z + 1]);
-                                position = [scaledX + 1 / resolution, scaledY + 1 / resolution, scaledZ + 0.5 / resolution];
+                                position = [scaledX + 1 / resolution, scaledY + 1 / resolution, scaledZ + this.interpolate(v3, v7, threshold) / resolution];
                                 break;
                             case 11:
                                 k = this.convertCoordToKey([2 * x, 2 * y + 2, 2 * z + 1]);
-                                position = [scaledX, scaledY + 1 / resolution, scaledZ + 0.5 / resolution];
+                                position = [scaledX, scaledY + 1 / resolution, scaledZ + this.interpolate(v2, v6, threshold) / resolution];
                                 break;
                         }
 
@@ -125,5 +125,11 @@ export class MarchingCubes {
         const z = coord[2];
         const shift = BigInt(2 << 15);
         return BigInt(x) * shift * shift + BigInt(y) * shift + BigInt(z);
+    }
+
+    private interpolate(a: number, b: number, t: number) {
+        const min = Math.min(a, b);
+        const max = Math.max(a, b);
+        return a < b ? ((t - min) / (max - min)) : (1 - (t - min) / (max - min)) ;
     }
 }
