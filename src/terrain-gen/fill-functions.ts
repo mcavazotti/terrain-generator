@@ -31,7 +31,7 @@ const DEFAULT_PERLIN_PARAMS: PerlimParams = {
     frequency: 0.001,
     octaves: 5,
     amplitude: 300,
-    height: 100
+    height: 0
 }
 
 export function perlin(grid: Grid, position: Vector3Tuple, resolution: number, params?: PerlimParams) {
