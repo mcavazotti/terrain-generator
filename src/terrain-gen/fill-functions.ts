@@ -29,14 +29,15 @@ export function trigSurface(grid: Grid, position: Vector3Tuple, scale: number, f
 const DEFAULT_PERLIN_PARAMS: PerlimParams = {
     seed: 0,
     frequency: 0.001,
-    octaves: 5,
+    octaves: 3,
     amplitude: 300,
-    height: 0
+    height: 0,
+    type: "Perlin"
 }
+const noise = new FastNoiseLite(0);
 
 export function perlin(grid: Grid, position: Vector3Tuple, resolution: number, params?: PerlimParams) {
     const p = { ...DEFAULT_PERLIN_PARAMS, ...params };
-    const noise = new FastNoiseLite(p.seed);
     noise.SetNoiseType("Perlin");
     noise.SetFrequency(p.frequency);
     let noiseSum = 0;
