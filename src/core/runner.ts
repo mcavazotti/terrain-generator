@@ -240,9 +240,17 @@ export class Runner {
     }
 
     private getIdealLOD(x: number, z: number) {
-        if (x == 0 || x == 4 || z == 0 || z == 4) return 0;
-        if (x == 2 && z == 2) return 2;
-        return 1;
+        if (!this.tiles[z][x]) {
+            if (x == 0 || x == 4 || z == 0 || z == 4) return 0;
+            if (x == 2 && z == 2) return 2;
+            return 1;
+        }
+        const tileCenter: Vector2Tuple = [this.tiles[z][x]!.position.x + this.tileDim[0] / 2, this.tiles[z][x]!.position.z + this.tileDim[2] / 2];
+        const manhattanDist = Math.abs(tileCenter[0] - this.camera.position.x) + Math.abs(tileCenter[1] - this.camera.position.z);
+        const meanHorizontalDim = (this.tileDim[0] + this.tileDim[2]) / 2;
+        if (manhattanDist < meanHorizontalDim) return 2;
+        if (manhattanDist < 2 * meanHorizontalDim) return 1;
+        return 0;
     }
 
     private tileRelativePos(tilePos: Vector3): Vector2Tuple {
