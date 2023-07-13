@@ -4,6 +4,7 @@ import { generateChunk } from "../terrain-gen/terrain-generator";
 import { PointerLockControls } from "../third_party/PointerLockControls"
 import GUI from "lil-gui";
 import { Tile, TileRequest } from "./interfaces";
+import { TileManager } from "../tile-manager/tile-manager";
 
 
 
@@ -14,6 +15,7 @@ export class Runner {
     private auxCamera: PerspectiveCamera;
     private cameraControl: PointerLockControls;
     private auxCameraControl: OrbitControls;
+    private tileManager: TileManager = new TileManager();
     private useAux = true;
     private wireframe = false;
     private prevTimestamp!: number;
@@ -25,10 +27,6 @@ export class Runner {
         return new Vector3(Math.floor(this.camera.position.x / this.tileDim[0]) * this.tileDim[0], 0, Math.floor(this.camera.position.z / this.tileDim[2]) * this.tileDim[2]);
     }
 
-    private workerLod0 = new Worker(new URL('./worker.ts', import.meta.url), { type: 'module' });
-    private workerLod1 = new Worker(new URL('./worker.ts', import.meta.url), { type: 'module' });
-    private workerLod2 = new Worker(new URL('./worker.ts', import.meta.url), { type: 'module' });
-    private tilesQueue: Set<string> = new Set();
 
     constructor() {
         this.renderer = new WebGLRenderer();
@@ -97,9 +95,7 @@ export class Runner {
         gui.add(guiControls, 'wireframe')
         gui.add(guiControls, 'focus')
 
-        this.workerLod0.onmessage = this.workerOnMessage.bind(this);
-        this.workerLod1.onmessage = this.workerOnMessage.bind(this);
-        this.workerLod2.onmessage = this.workerOnMessage.bind(this);
+        this.tileManager.tileReady$.subscribe(this.workerOnMessage.bind(this));
     }
 
     start() {
@@ -218,8 +214,8 @@ export class Runner {
                 const lod = this.getIdealLOD(x, z);
                 if (!this.tiles[z][x] || this.tiles[z][x]!.lod < lod) {
                     const tilePos: Vector3Tuple = [this.cameraReferencePos.x + this.tileDim[0] * (x - 2), -this.tileDim[1] / 2, this.cameraReferencePos.z + this.tileDim[2] * (z - 2)];
-                    this.requestTile({
-                        position: new Vector3(...tilePos),
+                    this.tileManager.requestTile({
+                        position: tilePos,
                         lod: lod,
                         relativePosition: [x, z],
                         dimention: this.tileDim
@@ -275,39 +271,22 @@ export class Runner {
         return relPos;
     }
 
-    private requestTile(tileRequest: TileRequest) {
-        const requestId = `${tileRequest.lod}-${tileRequest.relativePosition}-${tileRequest.position.toArray()}`;
-        if (this.tilesQueue.has(requestId)) return;
-        console.log("requesting: ", requestId)
-        this.tilesQueue.add(requestId);
-        switch (tileRequest.lod) {
-            case 0:
-                this.workerLod0.postMessage(tileRequest)
-                break;
-                case 1:
-                this.workerLod1.postMessage(tileRequest)
-                break;
-                case 2:
-                this.workerLod2.postMessage(tileRequest)
-                break;
-        }
-    }
 
 
-    private workerOnMessage(e: MessageEvent<[BufferGeometry, TileRequest]>) {
+
+    private workerOnMessage(data: [BufferGeometry, TileRequest]) {
 
 
-        const request = e.data[1];
-        const requestId = `${request.lod}-${request.relativePosition}-${request.position.x},${request.position.y},${request.position.z}`;
-        console.log('completed: ', requestId)
-        this.tilesQueue.delete(requestId);
+        const request = data[1];
+        const requestId = `${request.lod}-${request.relativePosition}-${request.position}`;
+        console.log('completed: ', requestId);
 
 
-        const x = (request.position.x - this.cameraReferencePos.x) / this.tileDim[0] + 2;
-        const z = (request.position.z - this.cameraReferencePos.z) / this.tileDim[2] + 2;
+        const x = (request.position[0] - this.cameraReferencePos.x) / this.tileDim[0] + 2;
+        const z = (request.position[2] - this.cameraReferencePos.z) / this.tileDim[2] + 2;
 
         if ((x >= 0 && x < 5 && z >= 0 && z < 5) && (!this.tiles[z][x] || this.tiles[z][x]!.lod < request.lod)) {
-            const shallowGeometry = e.data[0];
+            const shallowGeometry = data[0];
 
             const geometry = new BufferGeometry();
 
@@ -327,12 +306,12 @@ export class Runner {
 
             const mesh = new Mesh(geometry, new MeshStandardMaterial({ color: 0x886644 }));
             mesh.material.side = DoubleSide;
-            mesh.position.set(request.position.x, request.position.y, request.position.z);
+            mesh.position.set(...request.position);
             this.disposeTile(x, z);
             this.tiles[z][x] = {
                 lod: request.lod,
                 mesh: mesh,
-                position: request.position
+                position: new Vector3(...request.position)
             };
             this.scene.add(this.tiles[z][x]!.mesh);
         }

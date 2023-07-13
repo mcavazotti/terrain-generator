@@ -7,7 +7,7 @@ export interface Tile {
 }
 
 export interface TileRequest {
-    position: Vector3;
+    position: Vector3Tuple;
     lod: number;
     relativePosition: Vector2Tuple;
     dimention: Vector3Tuple;
