@@ -20,7 +20,7 @@ export class Runner {
     private wireframe = false;
     private prevTimestamp!: number;
     private movement: Vector3 = new Vector3();
-    private tileDim: Vector3Tuple = [80, 512, 80];
+    private tileDim: Vector3Tuple = [180, 512, 180];
     private tiles: (Tile | null)[][] = [];
 
     private get cameraReferencePos() {
