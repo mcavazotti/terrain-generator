@@ -68,7 +68,7 @@ export function terrain(grid: Grid, position: Vector3Tuple, resolution: number) 
     // noise.SetCellularDistanceFunction("Euclidean");
     // noise.SetCellularReturnType("Distance2Add");
     noise.SetNoiseType("Perlin");
-    noise.SetFractalOctaves(7);
+    noise.SetFractalType("FBm");
     
     for (let y = 0; y < grid.length; y++) {
         for (let z = 0; z < grid[0].length; z++) {
@@ -76,12 +76,13 @@ export function terrain(grid: Grid, position: Vector3Tuple, resolution: number) 
                 const scaledX = x / resolution;
                 const scaledY = y / resolution;
                 const scaledZ = z / resolution;
-
-                noise.SetFractalType("None");
+                
+                // noise.SetFractalType("None");
+                noise.SetFractalOctaves(3);
                 noise.SetFrequency(0.002);
                 const mountainess = noise.GetNoise(position[0] + scaledX + 100, position[2] + scaledZ - 1600);
                 noise.SetFrequency(0.003);
-                noise.SetFractalType("FBm");
+                noise.SetFractalOctaves(7);
                 const tmp = noise.GetNoise(position[0] + scaledX, position[2] + scaledZ) * 300;
                 const slope = (1 + 20*mountainess / (1 + Math.abs(20*mountainess))) / 2;
                 grid[y][z][x] = position[1] + scaledY - tmp * slope - mountainess * 150;
