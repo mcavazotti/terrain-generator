@@ -10,7 +10,7 @@ var isRunning = false;
 const chunkQueue = new Map<string, TileRequest>();
 
 function generate() {
-    for (let [key, request] of chunkQueue) {
+    for (let [key, request] of [...chunkQueue.entries()].sort((a,b) => a[1].lod - b[1].lod)) {
         if (!isRunning) {
             isRunning = true;
             let statusMessage: StatusMessage = {
@@ -19,9 +19,9 @@ function generate() {
             };
             self.postMessage(statusMessage);
         }
-        const geometry = generateChunk(request.position, request.dimention, 1 / (1 << (2 - request.lod)), { octaves: 5 + request.lod, type: "OpenSimplex2" });
+        const geometry = generateChunk(request.position, request.dimention, 1 / (1 << (2 - request.lod)), { octaves: 7, type: "Perlin" });
         chunkQueue.delete(key);
-        const dataMessage: DataMessage = {
+        const dataMessage: DataMessage = {  
             type: "data",
             data: geometry,
             request: request

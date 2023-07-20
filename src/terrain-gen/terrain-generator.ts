@@ -1,6 +1,6 @@
 import { BufferGeometry, DoubleSide, Mesh, MeshStandardMaterial, Vector3Tuple } from "three";
 import { MarchingCubes } from "./marching-cubes";
-import { perlin } from "./fill-functions";
+import { perlin, terrain } from "./fill-functions";
 import { Grid, PerlimParams } from "./types";
 
 
@@ -21,13 +21,9 @@ export function generateChunk(id: Vector3Tuple, chunkSize: Vector3Tuple = [25, 2
 
     // simplePlane(grid, 0.1);
     // trigSurface(grid, id, 1, 1, 2, resolution);
-    perlin(grid, id, resolution, params as PerlimParams);
+    // perlin(grid, id, resolution, params as PerlimParams);
+    terrain(grid, id, resolution);
     const geometry = (new MarchingCubes()).generateSurface(grid, resolution);
-    // const mesh = new Mesh(geometry, new MeshStandardMaterial({ color: 0x886644 }));
-    // mesh.material.wireframe = true;
-    // mesh.material.flatShading = true;
-    // mesh.material.side = DoubleSide;
 
-    // mesh.position.set(...id);
     return geometry;
 }

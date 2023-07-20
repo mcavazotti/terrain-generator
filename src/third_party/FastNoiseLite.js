@@ -261,7 +261,7 @@ export default class FastNoiseLite {
      * @description Sets method for combining octaves in all fractal noise types
      * @remarks Default: None
      * @default FastNoiseLite.FractalType.None
-     * @param {FastNoiseLite.FractalType} fractalType
+     * @param { "None"| "FBm" | "Ridged" | "PingPong" | "DomainWarpProgressive" | "DomainWarpIndependent"} fractalType
      */
     SetFractalType(fractalType) {
         this._FractalType = fractalType;
@@ -323,7 +323,7 @@ export default class FastNoiseLite {
      * @description Sets distance function used in cellular noise calculations
      * @remarks Default: EuclideanSq
      * @default FastNoiseLite.CellularDistanceFunction.EuclideanSq
-     * @param {FastNoiseLite.CellularDistanceFunction} cellularDistanceFunction
+     * @param {"Euclidean" | "EuclideanSq" | "Manhattan" | "Hybrid"} cellularDistanceFunction
      */
     SetCellularDistanceFunction(cellularDistanceFunction) {
         this._CellularDistanceFunction = cellularDistanceFunction;
@@ -333,7 +333,7 @@ export default class FastNoiseLite {
      * @description Sets return type from cellular noise calculations
      * @remarks Default: Distance
      * @default FastNoiseLite.CellularReturnType.Distance
-     * @param {FastNoiseLite.CellularReturnType} cellularReturnType
+     * @param {"CellValue" | "Distance" | "Distance2" | "Distance2Add" | "Distance2Sub" | "Distance2Mul" | "Distance2Div"} cellularReturnType
      */
     SetCellularReturnType(cellularReturnType) {
         this._CellularReturnType = cellularReturnType;

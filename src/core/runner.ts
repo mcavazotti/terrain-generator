@@ -144,7 +144,7 @@ export class Runner {
         if (/*!this.useAux &&*/ this.movement.lengthSq()) {
 
             this.movement.clone().applyQuaternion(this.camera.quaternion);
-            this.camera.position.addScaledVector(this.movement.clone().applyQuaternion(this.camera.quaternion).normalize().multiplyScalar(10), deltaTime);
+            this.camera.position.addScaledVector(this.movement.clone().applyQuaternion(this.camera.quaternion).normalize().multiplyScalar(25), deltaTime);
         }
         this.manageTiles();
 
@@ -154,7 +154,7 @@ export class Runner {
 
     private manageTiles() {
         if (!this.tiles[2][2]) {
-            const geometry = generateChunk([this.cameraReferencePos.x, -this.tileDim[1] / 2, this.cameraReferencePos.z], this.tileDim, 1, { octaves: 7, type: "OpenSimplex2" });
+            const geometry = generateChunk([this.cameraReferencePos.x, -this.tileDim[1] / 2, this.cameraReferencePos.z], this.tileDim, 1, { octaves: 7, type: "Perlin" });
             const mesh = new Mesh(geometry, new MeshStandardMaterial({ color: 0x886644 }));
             mesh.material.side = DoubleSide;
             mesh.position.set(...(new Vector3(this.cameraReferencePos.x, -this.tileDim[1] / 2, this.cameraReferencePos.z)).toArray());
