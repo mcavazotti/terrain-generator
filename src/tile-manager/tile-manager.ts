@@ -31,6 +31,7 @@ export class TileManager {
                         this.tileReady.next([message.data as BufferGeometry, message.request]);
                         this.pendingTiles.delete(`${message.request.position}`);
                         this.workers[i].load -= Math.round(Math.pow(3, message.request.lod));
+                        console.log([...this.workers.map(w => w.load)])
                         this.insertInCache(message.data, message.request);
                         break;
                 }
@@ -52,6 +53,7 @@ export class TileManager {
 
             this.pendingTiles.set(key, request.lod);
             selectedWorker.load += Math.round(Math.pow(3, request.lod));
+            console.log([...this.workers.map(w => w.load)])
             selectedWorker.worker.postMessage(request);
         }
     }

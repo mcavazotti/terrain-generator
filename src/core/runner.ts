@@ -1,4 +1,4 @@
-import { BufferAttribute, BufferGeometry, CameraHelper, Color, DoubleSide, GridHelper, HemisphereLight, Material, Mesh, MeshStandardMaterial, PerspectiveCamera, Scene, Vector2Tuple, Vector3, Vector3Tuple, WebGLRenderer } from "three";
+import { AxesHelper, BufferAttribute, BufferGeometry, CameraHelper, Color, DirectionalLight, DirectionalLightHelper, DoubleSide, GridHelper, HemisphereLight, HemisphereLightHelper, Material, Mesh, MeshStandardMaterial, PerspectiveCamera, Scene, Vector2Tuple, Vector3, Vector3Tuple, WebGLRenderer } from "three";
 import { OrbitControls } from "../third_party/OrbitControls";
 import { generateChunk } from "../terrain-gen/terrain-generator";
 import { PointerLockControls } from "../third_party/PointerLockControls"
@@ -20,17 +20,23 @@ export class Runner {
     private wireframe = false;
     private prevTimestamp!: number;
     private movement: Vector3 = new Vector3();
-    private tileDim: Vector3Tuple = [256, 512, 256];
+    // private tileDim: Vector3Tuple = [256, 512, 256];
+    private tileDim: Vector3Tuple = [56, 512, 56];
+
+    private numTiles: number = 51;
     private tiles: (Tile | null)[][] = [];
 
     private get cameraReferencePos() {
         return new Vector3(Math.floor(this.camera.position.x / this.tileDim[0]) * this.tileDim[0], 0, Math.floor(this.camera.position.z / this.tileDim[2]) * this.tileDim[2]);
     }
 
+    private referencePosHelper: AxesHelper;
+
 
     constructor() {
         this.renderer = new WebGLRenderer();
         this.renderer.setSize(window.innerWidth, window.innerHeight);
+        // this.renderer.shadowMap.enabled = true;
         this.renderer.domElement.tabIndex = -1;
         document.body.appendChild(this.renderer.domElement);
 
@@ -40,7 +46,8 @@ export class Runner {
         this.scene.add(this.camera);
 
         this.camera.position.y = 5;
-        this.camera.position.x = 5;
+        this.camera.position.x = this.tileDim[0] / 2;
+        this.camera.position.z = this.tileDim[2] / 2;
         this.camera.matrixWorldNeedsUpdate = true;
 
         this.cameraControl = new PointerLockControls(this.camera, this.renderer.domElement);
@@ -53,20 +60,31 @@ export class Runner {
         this.auxCameraControl = new OrbitControls(this.auxCamera, this.renderer.domElement);
 
         // initialize map slots
-        for (let z = 0; z < 5; z++) {
+        for (let z = 0; z < this.numTiles; z++) {
             this.tiles.push([]);
-            for (let x = 0; x < 5; x++) {
+            for (let x = 0; x < this.numTiles; x++) {
                 this.tiles[z].push(null);
             }
         }
 
-        const light = new HemisphereLight(0x004444);
-        light.position.set(5, -5, 0);
+        const light = new DirectionalLight(0xffffff);
+        light.position.set(10, 10, -10);
+        // light.castShadow = true;
+        // light.shadow.mapSize.width = 2048;
+        // light.shadow.mapSize.height = 2048;
+        // light.target =this.camera;
+        // this.camera.add(new DirectionalLightHelper(light))
+        // this.scene.add(new HemisphereLightHelper(light, 10));
         this.scene.add(light);
         this.scene.add(new GridHelper(10, 11));
 
         const cameraHelper = new CameraHelper(this.camera);
         this.scene.add(cameraHelper);
+
+        this.referencePosHelper = new AxesHelper(5);
+        this.referencePosHelper.position.set(...this.cameraReferencePos.toArray());
+        this.scene.add(this.referencePosHelper);
+
         const guiControls = {
             switchCamera: () => {
                 this.useAux = !this.useAux
@@ -148,31 +166,34 @@ export class Runner {
         }
         this.manageTiles();
 
+        this.referencePosHelper.position.set(...this.cameraReferencePos.toArray());
         this.renderer.render(this.scene, this.useAux ? this.auxCamera : this.camera);
         requestAnimationFrame(this.loop.bind(this));
     }
 
     private manageTiles() {
-        if (!this.tiles[2][2]) {
+        if (!this.tiles[Math.floor(this.numTiles / 2)][Math.floor(this.numTiles / 2)]) {
             const geometry = generateChunk([this.cameraReferencePos.x, -this.tileDim[1] / 2, this.cameraReferencePos.z], this.tileDim, 1, { octaves: 7, type: "Perlin" });
-            const mesh = new Mesh(geometry, new MeshStandardMaterial({ color: 0x886644 }));
+            const mesh = new Mesh(geometry, new MeshStandardMaterial({ color: 0x886644, }));
+            mesh.castShadow = true;
+            mesh.receiveShadow = true;
             mesh.material.side = DoubleSide;
             mesh.position.set(...(new Vector3(this.cameraReferencePos.x, -this.tileDim[1] / 2, this.cameraReferencePos.z)).toArray());
-            this.tiles[2][2] = {
+            this.tiles[Math.floor(this.numTiles / 2)][Math.floor(this.numTiles / 2)] = {
                 lod: 2,
                 mesh: mesh,
                 position: new Vector3(this.cameraReferencePos.x, -this.tileDim[1] / 2, this.cameraReferencePos.z)
             };
-            this.scene.add(this.tiles[2][2].mesh);
+            this.scene.add(this.tiles[Math.floor(this.numTiles / 2)][Math.floor(this.numTiles / 2)]!.mesh);
         }
-        const relativePos = this.tileRelativePos(this.tiles[2][2].position);
+        const relativePos = this.tileRelativePos(this.tiles[Math.floor(this.numTiles / 2)][Math.floor(this.numTiles / 2)]!.position);
         // console.log(relativePos);
 
         //move tiles relative to camera
         if (relativePos[0] == -1) {
-            for (let x = 4; x > 0; x--) {
-                for (let z = 0; z < 5; z++) {
-                    if (x == 4) this.disposeTile(x, z);
+            for (let x = this.numTiles - 1; x > 0; x--) {
+                for (let z = 0; z < this.numTiles; z++) {
+                    if (x == this.numTiles - 1) this.disposeTile(x, z);
                     this.tiles[z][x] = this.tiles[z][x - 1];
                     if (x == 1) this.tiles[z][x - 1] = null;
                 }
@@ -180,19 +201,19 @@ export class Runner {
         }
 
         if (relativePos[0] == 1) {
-            for (let x = 0; x < 4; x++) {
-                for (let z = 0; z < 5; z++) {
+            for (let x = 0; x < this.numTiles - 1; x++) {
+                for (let z = 0; z < this.numTiles; z++) {
                     if (x == 0) this.disposeTile(x, z);
                     this.tiles[z][x] = this.tiles[z][x + 1];
-                    if (x == 3) this.tiles[z][x + 1] = null;
+                    if (x == this.numTiles - 2) this.tiles[z][x + 1] = null;
                 }
             }
         }
 
         if (relativePos[1] == -1) {
-            for (let z = 4; z > 0; z--) {
-                for (let x = 0; x < 5; x++) {
-                    if (z == 4) this.disposeTile(x, z);
+            for (let z = this.numTiles - 1; z > 0; z--) {
+                for (let x = 0; x < this.numTiles; x++) {
+                    if (z == this.numTiles - 1) this.disposeTile(x, z);
                     this.tiles[z][x] = this.tiles[z - 1][x];
                     if (z == 1) this.tiles[z - 1][x] = null;
                 }
@@ -200,20 +221,20 @@ export class Runner {
         }
 
         if (relativePos[1] == 1) {
-            for (let z = 0; z < 4; z++) {
-                for (let x = 0; x < 5; x++) {
+            for (let z = 0; z < this.numTiles - 1; z++) {
+                for (let x = 0; x < this.numTiles; x++) {
                     if (z == 0) this.disposeTile(x, z);
                     this.tiles[z][x] = this.tiles[z + 1][x];
-                    if (z == 3) this.tiles[z + 1][x] = null;
+                    if (z == this.numTiles - 2) this.tiles[z + 1][x] = null;
                 }
             }
         }
 
-        for (let z = 0; z < 5; z++) {
-            for (let x = 0; x < 5; x++) {
+        for (let z = 0; z < this.numTiles; z++) {
+            for (let x = 0; x < this.numTiles; x++) {
                 const lod = this.getIdealLOD(x, z);
                 if (!this.tiles[z][x] || this.tiles[z][x]!.lod < lod) {
-                    const tilePos: Vector3Tuple = [this.cameraReferencePos.x + this.tileDim[0] * (x - 2), -this.tileDim[1] / 2, this.cameraReferencePos.z + this.tileDim[2] * (z - 2)];
+                    const tilePos: Vector3Tuple = [this.cameraReferencePos.x + this.tileDim[0] * (x - Math.floor(this.numTiles / 2)), -this.tileDim[1] / 2, this.cameraReferencePos.z + this.tileDim[2] * (z - Math.floor(this.numTiles / 2))];
                     this.tileManager.requestTile({
                         position: tilePos,
                         lod: lod,
@@ -246,15 +267,15 @@ export class Runner {
 
     private getIdealLOD(x: number, z: number) {
         if (!this.tiles[z][x]) {
-            if (x == 0 || x == 4 || z == 0 || z == 4) return 0;
-            if (x == 2 && z == 2) return 2;
+            if (x == Math.floor(this.numTiles / 2) && z == Math.floor(this.numTiles / 2)) return 2;
+            if (Math.abs(this.numTiles - x) + Math.abs(this.numTiles - z) > 3) return 0;
             return 1;
         }
         const tileCenter: Vector2Tuple = [this.tiles[z][x]!.position.x + this.tileDim[0] / 2, this.tiles[z][x]!.position.z + this.tileDim[2] / 2];
         const manhattanDist = Math.abs(tileCenter[0] - this.camera.position.x) + Math.abs(tileCenter[1] - this.camera.position.z);
         const meanHorizontalDim = (this.tileDim[0] + this.tileDim[2]) / 2;
         if (manhattanDist < 1.5 * meanHorizontalDim) return 2;
-        if (manhattanDist < 2 * meanHorizontalDim) return 1;
+        if (manhattanDist < 4 * meanHorizontalDim) return 1;
         return 0;
     }
 
@@ -278,14 +299,14 @@ export class Runner {
 
 
         const request = data[1];
-        const requestId = `${request.lod}-${request.relativePosition}-${request.position}`;
+        const requestId = `${request.lod}-${request.position}`;
         console.log('completed: ', requestId);
 
 
-        const x = (request.position[0] - this.cameraReferencePos.x) / this.tileDim[0] + 2;
-        const z = (request.position[2] - this.cameraReferencePos.z) / this.tileDim[2] + 2;
+        const x = (request.position[0] - this.cameraReferencePos.x) / this.tileDim[0] + Math.floor(this.numTiles/2);
+        const z = (request.position[2] - this.cameraReferencePos.z) / this.tileDim[2] + Math.floor(this.numTiles/2);
 
-        if ((x >= 0 && x < 5 && z >= 0 && z < 5) && (!this.tiles[z][x] || this.tiles[z][x]!.lod < request.lod)) {
+        if ((x >= 0 && x < this.numTiles && z >= 0 && z < this.numTiles) && (!this.tiles[z][x] || this.tiles[z][x]!.lod < request.lod)) {
             const shallowGeometry = data[0];
 
             const geometry = new BufferGeometry();
@@ -305,6 +326,8 @@ export class Runner {
 
 
             const mesh = new Mesh(geometry, new MeshStandardMaterial({ color: 0x886644 }));
+            // mesh.castShadow = true;
+            // mesh.receiveShadow=true;
             mesh.material.side = DoubleSide;
             mesh.position.set(...request.position);
             this.disposeTile(x, z);
