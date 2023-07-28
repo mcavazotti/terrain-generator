@@ -55,7 +55,7 @@ export class Runner {
         this.camera = new PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 6000);
         this.scene.add(this.camera);
 
-        this.camera.position.y = 5;
+        this.camera.position.y = 100;
         this.camera.position.x = this.tileDim[0] / 2;
         this.camera.position.z = this.tileDim[2] / 2;
         this.camera.matrixWorldNeedsUpdate = true;
@@ -154,7 +154,6 @@ export class Runner {
         gui.add(guiControls, 'firstPerson')
         gui.add(guiControls, 'switchCamera')
         gui.add(guiControls, 'wireframe')
-        gui.add(guiControls, 'focus')
 
         this.tileManager.tileReady$.subscribe(this.workerOnMessage.bind(this));
     }
