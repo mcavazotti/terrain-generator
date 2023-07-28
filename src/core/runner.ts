@@ -46,7 +46,6 @@ export class Runner {
     constructor() {
         this.renderer = new WebGLRenderer();
         this.renderer.setSize(window.innerWidth, window.innerHeight);
-        // this.renderer.shadowMap.enabled = true;
         this.renderer.domElement.tabIndex = -1;
         document.body.appendChild(this.renderer.domElement);
 
@@ -83,12 +82,7 @@ export class Runner {
         this.scene.add(ambient);
         const light = new DirectionalLight(0xffffbb);
         light.position.set(10, 10, -10);
-        // light.castShadow = true;
-        // light.shadow.mapSize.width = 2048;
-        // light.shadow.mapSize.height = 2048;
-        // light.target =this.camera;
         this.camera.add(new DirectionalLightHelper(light))
-        // this.scene.add(new HemisphereLightHelper(light, 10));
         this.scene.add(light);
         this.scene.add(new GridHelper(10, 11));
 
@@ -285,16 +279,6 @@ export class Runner {
                         dimention: this.tileDim
                     })
                 }
-                // if (!this.tiles[z][x]) {
-                //     const tilePos: Vector3Tuple = [this.cameraReferencePos.x + this.tileDim[0] * (x - 2), -this.tileDim[1] / 2, this.cameraReferencePos.z + this.tileDim[2] * (z - 2)];
-                //     this.tiles[z][x] = {
-                //         lod: lod,
-                //         mesh: generateChunk(tilePos, this.tileDim, 1 / (1 << (2 - lod)), { octaves: 5 + lod, type: "OpenSimplex2" }),
-                //         position: new Vector3(...tilePos)
-                //     };
-                //     (this.tiles[z][x]!.mesh.material as MeshStandardMaterial).wireframe = this.wireframe;
-                //     this.scene.add(this.tiles[z][x]!.mesh);
-                // }
             }
         }
 
