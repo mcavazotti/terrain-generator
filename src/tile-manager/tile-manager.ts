@@ -1,6 +1,6 @@
 import { Subject } from "rxjs";
 import { WorkerMessage } from "./types";
-import { BufferGeometry, Vector3, Vector3Tuple } from "three";
+import { BufferGeometry, Vector3Tuple } from "three";
 import { TileRequest } from "../core/interfaces";
 
 
@@ -31,7 +31,7 @@ export class TileManager {
                         this.tileReady.next([message.data as BufferGeometry, message.request]);
                         this.pendingTiles.delete(`${message.request.position}`);
                         this.workers[i].load -= Math.round(Math.pow(3, message.request.lod));
-                        console.log([...this.workers.map(w => w.load)])
+                        // console.log([...this.workers.map(w => w.load)])
                         this.insertInCache(message.data, message.request);
                         break;
                 }
@@ -53,15 +53,15 @@ export class TileManager {
 
             this.pendingTiles.set(key, request.lod);
             selectedWorker.load += Math.round(Math.pow(3, request.lod));
-            console.log([...this.workers.map(w => w.load)])
+            // console.log([...this.workers.map(w => w.load)])
             selectedWorker.worker.postMessage(request);
         }
     }
 
-    private fetchFromCache(position: Vector3Tuple, lod: number): [BufferGeometry, number] | null {
+    private fetchFromCache(_: Vector3Tuple, __: number): [BufferGeometry, number] | null {
         return null
     }
-    private insertInCache(geometry: BufferGeometry, request: TileRequest) {
+    private insertInCache(_: BufferGeometry, __: TileRequest) {
 
     }
 

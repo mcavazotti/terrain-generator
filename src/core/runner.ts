@@ -1,4 +1,4 @@
-import { AmbientLight, AxesHelper, BackSide, BufferAttribute, BufferGeometry, CameraHelper, Color, DirectionalLight, DirectionalLightHelper, DoubleSide, FrontSide, GLSL3, GridHelper, HemisphereLight, HemisphereLightHelper, Material, Mesh, MeshStandardMaterial, PerspectiveCamera, Scene, ShaderMaterial, SphereGeometry, UniformsLib, Vector2Tuple, Vector3, Vector3Tuple, WebGLRenderer } from "three";
+import { AmbientLight, AxesHelper, BackSide, BufferAttribute, BufferGeometry, CameraHelper, Color, DirectionalLight, DirectionalLightHelper,  FrontSide, GLSL3, GridHelper, Material, Mesh, MeshStandardMaterial, PerspectiveCamera, Scene, ShaderMaterial, SphereGeometry, UniformsLib, Vector2Tuple, Vector3, Vector3Tuple, WebGLRenderer } from "three";
 import { OrbitControls } from "../third_party/OrbitControls";
 import { generateChunk } from "../terrain-gen/terrain-generator";
 import { PointerLockControls } from "../third_party/PointerLockControls"
@@ -137,10 +137,6 @@ export class Runner {
                 this.useAux = !this.useAux
                 this.auxCameraControl.enabled = this.useAux;
                 cameraHelper.visible = true;
-            },
-            focus: () => {
-                this.renderer.domElement.focus();
-
             },
             wireframe: () => {
                 this.wireframe = !this.wireframe;
@@ -347,8 +343,8 @@ export class Runner {
 
 
         const request = data[1];
-        const requestId = `${request.lod}-${request.position}`;
-        console.log('completed: ', requestId);
+        // const requestId = `${request.lod}-${request.position}`;
+        // console.log('completed: ', requestId);
 
 
         const x = (request.position[0] - this.cameraReferencePos.x) / this.tileDim[0] + Math.floor(this.numTiles / 2);

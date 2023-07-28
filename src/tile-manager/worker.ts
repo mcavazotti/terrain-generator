@@ -39,7 +39,7 @@ function generate() {
 }
 
 self.onmessage = (e: MessageEvent<TileRequest>) => {
-    console.log("new request")
+    // console.log("new request")
     const request = e.data;
     chunkQueue.set(`${request.relativePosition}`, request);
     if (!isRunning) generate();
