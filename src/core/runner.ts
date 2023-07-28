@@ -1,10 +1,14 @@
-import { AxesHelper, BufferAttribute, BufferGeometry, CameraHelper, Color, DirectionalLight, DirectionalLightHelper, DoubleSide, GridHelper, HemisphereLight, HemisphereLightHelper, Material, Mesh, MeshStandardMaterial, PerspectiveCamera, Scene, Vector2Tuple, Vector3, Vector3Tuple, WebGLRenderer } from "three";
+import { AmbientLight, AxesHelper, BackSide, BufferAttribute, BufferGeometry, CameraHelper, Color, DirectionalLight, DirectionalLightHelper, DoubleSide, FrontSide, GLSL3, GridHelper, HemisphereLight, HemisphereLightHelper, Material, Mesh, MeshStandardMaterial, PerspectiveCamera, Scene, ShaderMaterial, SphereGeometry, UniformsLib, Vector2Tuple, Vector3, Vector3Tuple, WebGLRenderer } from "three";
 import { OrbitControls } from "../third_party/OrbitControls";
 import { generateChunk } from "../terrain-gen/terrain-generator";
 import { PointerLockControls } from "../third_party/PointerLockControls"
 import GUI from "lil-gui";
 import { Tile, TileRequest } from "./interfaces";
 import { TileManager } from "../tile-manager/tile-manager";
+import { terrainFragmentShader } from "../auxiliary/shaders/terrain.frag.glsl";
+import { terrainVertexShader } from "../auxiliary/shaders/terrain.vert.glsl";
+import { skyFragmentShader } from "../auxiliary/shaders/sky.frag.glsl";
+import { skyVertexShader } from "../auxiliary/shaders/sky.vert.glsl";
 
 
 
@@ -26,11 +30,17 @@ export class Runner {
     private numTiles: number = 51;
     private tiles: (Tile | null)[][] = [];
 
+    private material: ShaderMaterial;
+
     private get cameraReferencePos() {
         return new Vector3(Math.floor(this.camera.position.x / this.tileDim[0]) * this.tileDim[0], 0, Math.floor(this.camera.position.z / this.tileDim[2]) * this.tileDim[2]);
     }
 
     private referencePosHelper: AxesHelper;
+
+    private skyDome: Mesh<BufferGeometry, ShaderMaterial>;
+
+
 
 
     constructor() {
@@ -41,8 +51,8 @@ export class Runner {
         document.body.appendChild(this.renderer.domElement);
 
         this.scene = new Scene();
-        this.scene.background = new Color(0x444444);
-        this.camera = new PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+        this.scene.background = new Color(0xaaaaff);
+        this.camera = new PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 6000);
         this.scene.add(this.camera);
 
         this.camera.position.y = 5;
@@ -57,6 +67,8 @@ export class Runner {
         this.auxCamera.position.x = 10;
         this.auxCamera.position.y = 50;
 
+
+
         this.auxCameraControl = new OrbitControls(this.auxCamera, this.renderer.domElement);
 
         // initialize map slots
@@ -67,16 +79,51 @@ export class Runner {
             }
         }
 
-        const light = new DirectionalLight(0xffffff);
+        const ambient = new AmbientLight(0xaaaaff, 0.6);
+        this.scene.add(ambient);
+        const light = new DirectionalLight(0xffffbb);
         light.position.set(10, 10, -10);
         // light.castShadow = true;
         // light.shadow.mapSize.width = 2048;
         // light.shadow.mapSize.height = 2048;
         // light.target =this.camera;
-        // this.camera.add(new DirectionalLightHelper(light))
+        this.camera.add(new DirectionalLightHelper(light))
         // this.scene.add(new HemisphereLightHelper(light, 10));
         this.scene.add(light);
         this.scene.add(new GridHelper(10, 11));
+
+
+        this.material = new ShaderMaterial({
+            vertexShader: terrainVertexShader,
+            fragmentShader: terrainFragmentShader,
+            lights: true,
+            glslVersion: GLSL3,
+            uniforms: {
+                ...UniformsLib.lights,
+                grassColor: { value: new Color(0.17, 0.3, 0.05) },
+                rockColor: { value: new Color(0.2, 0.2, 0.15) },
+                snowColor: { value: new Color(0.9, 0.9, 0.9) },
+                limitSlope: { value: 60 },
+                heightTransition: { value: 300 },
+                lightDir: { value: light.getWorldDirection(new Vector3()) }
+            }
+        });
+
+        this.skyDome = new Mesh(new SphereGeometry(3000, 120, 80), new ShaderMaterial({
+            vertexShader: skyVertexShader,
+            fragmentShader: skyFragmentShader,
+            lights: true,
+            glslVersion: GLSL3,
+            uniforms: {
+                ...UniformsLib.lights,
+                skyColor: { value: new Color(0.666, 0.666, 1.0) },
+                nightSkyColor: { value: new Color(0.25, 0.25, 0.75) },
+                lightDir: { value: light.getWorldDirection(new Vector3()) }
+            }
+        }));
+
+        this.skyDome.material.side = BackSide
+        this.scene.add(this.skyDome)
 
         const cameraHelper = new CameraHelper(this.camera);
         this.scene.add(cameraHelper);
@@ -167,6 +214,7 @@ export class Runner {
         this.manageTiles();
 
         this.referencePosHelper.position.set(...this.cameraReferencePos.toArray());
+        this.skyDome.position.set(...this.camera.position.toArray());
         this.renderer.render(this.scene, this.useAux ? this.auxCamera : this.camera);
         requestAnimationFrame(this.loop.bind(this));
     }
@@ -174,10 +222,10 @@ export class Runner {
     private manageTiles() {
         if (!this.tiles[Math.floor(this.numTiles / 2)][Math.floor(this.numTiles / 2)]) {
             const geometry = generateChunk([this.cameraReferencePos.x, -this.tileDim[1] / 2, this.cameraReferencePos.z], this.tileDim, 1, { octaves: 7, type: "Perlin" });
-            const mesh = new Mesh(geometry, new MeshStandardMaterial({ color: 0x886644, }));
+            const mesh = new Mesh(geometry, this.material);
             mesh.castShadow = true;
             mesh.receiveShadow = true;
-            mesh.material.side = DoubleSide;
+            mesh.material.side = FrontSide;
             mesh.position.set(...(new Vector3(this.cameraReferencePos.x, -this.tileDim[1] / 2, this.cameraReferencePos.z)).toArray());
             this.tiles[Math.floor(this.numTiles / 2)][Math.floor(this.numTiles / 2)] = {
                 lod: 2,
@@ -303,8 +351,8 @@ export class Runner {
         console.log('completed: ', requestId);
 
 
-        const x = (request.position[0] - this.cameraReferencePos.x) / this.tileDim[0] + Math.floor(this.numTiles/2);
-        const z = (request.position[2] - this.cameraReferencePos.z) / this.tileDim[2] + Math.floor(this.numTiles/2);
+        const x = (request.position[0] - this.cameraReferencePos.x) / this.tileDim[0] + Math.floor(this.numTiles / 2);
+        const z = (request.position[2] - this.cameraReferencePos.z) / this.tileDim[2] + Math.floor(this.numTiles / 2);
 
         if ((x >= 0 && x < this.numTiles && z >= 0 && z < this.numTiles) && (!this.tiles[z][x] || this.tiles[z][x]!.lod < request.lod)) {
             const shallowGeometry = data[0];
@@ -325,10 +373,10 @@ export class Runner {
             geometry.groups = shallowGeometry.groups;
 
 
-            const mesh = new Mesh(geometry, new MeshStandardMaterial({ color: 0x886644 }));
+            const mesh = new Mesh(geometry, this.material);
             // mesh.castShadow = true;
             // mesh.receiveShadow=true;
-            mesh.material.side = DoubleSide;
+            mesh.material.side = FrontSide;
             mesh.position.set(...request.position);
             this.disposeTile(x, z);
             this.tiles[z][x] = {

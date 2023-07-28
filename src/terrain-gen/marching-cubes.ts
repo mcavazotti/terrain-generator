@@ -102,7 +102,6 @@ export class MarchingCubes {
         geometry.setAttribute('position', vertexBuffer);
         geometry.setIndex(indices);
         geometry.computeVertexNormals();
-        // return new ExtendedBufferGeometry(geometry);
         return geometry;
     }
 
