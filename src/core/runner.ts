@@ -210,7 +210,7 @@ export class Runner {
 
     private manageTiles() {
         if (!this.tiles[Math.floor(this.numTiles / 2)][Math.floor(this.numTiles / 2)]) {
-            const geometry = generateChunk([this.cameraReferencePos.x, -this.tileDim[1] / 2, this.cameraReferencePos.z], this.tileDim, 1, { octaves: 7, type: "Perlin" });
+            const geometry = generateChunk([this.cameraReferencePos.x, -this.tileDim[1] / 2, this.cameraReferencePos.z], this.tileDim, 1);
             const mesh = new Mesh(geometry, this.material);
             mesh.castShadow = true;
             mesh.receiveShadow = true;
