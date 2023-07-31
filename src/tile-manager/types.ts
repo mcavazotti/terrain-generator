@@ -1,4 +1,4 @@
-import { BufferGeometry, Vector3 } from "three";
+import { BufferGeometry, Vector3, Vector3Tuple } from "three";
 import { TileRequest } from "../core/interfaces";
 
 export interface StatusMessage {
@@ -12,7 +12,17 @@ export interface DataMessage {
     request: TileRequest
 }
 
-export type WorkerMessage = DataMessage | StatusMessage;
+export interface PositionMessage {
+    type: 'position',
+    pos: Vector3Tuple,
+}
+
+export interface RemoveFromQueueMessage {
+    type: 'remove',
+    key: string,
+}
+
+export type WorkerMessage = DataMessage | StatusMessage | RemoveFromQueueMessage;
 
 export interface TileData {
     geometry: BufferGeometry,

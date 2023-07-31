@@ -2,33 +2,65 @@
 
 import { generateChunk } from "../terrain-gen/terrain-generator";
 import { TileRequest } from "../core/interfaces";
-import { DataMessage, StatusMessage } from "./types";
+import { DataMessage, PositionMessage, RemoveFromQueueMessage, StatusMessage } from "./types";
+import { BufferGeometry, Vector3, Vector3Tuple } from "three";
+import { getIdealLOD } from "./tile-manager";
+import { CONFIG } from "../core/config";
 
 console.log("start worker")
 
 var isRunning = false;
 const chunkQueue = new Map<string, TileRequest>();
+var referencePosition: Vector3Tuple = [0, 0, 0];
 
-function generate() {
-    for (let [key, request] of [...chunkQueue.entries()].sort((a,b) => a[1].lod - b[1].lod)) {
-        if (!isRunning) {
-            isRunning = true;
-            let statusMessage: StatusMessage = {
-                type: "status",
-                idle: true
+function getNextTile(): TileRequest | null {
+    return [...chunkQueue.values()].sort((a, b) => {
+        let diff = a.lod - b.lod;
+        if (!diff) {
+            const dist1 = Math.abs(referencePosition[0] - a.position[0]) + Math.abs(referencePosition[2] - a.position[2]);
+            const dist2 = Math.abs(referencePosition[0] - b.position[0]) + Math.abs(referencePosition[2] - b.position[2]);
+            diff = dist1 - dist2;
+        }
+        return diff;
+    })[0] ?? null;
+}
+
+function cleanQueue() {
+    const queueEntries = [...chunkQueue.entries()];
+    for (let [key, request] of queueEntries) {
+        if (getIdealLOD(new Vector3(...referencePosition), new Vector3(...request.position), CONFIG.tileDim) < request.lod) {
+            chunkQueue.delete(key);
+            const deleteMessage: RemoveFromQueueMessage = {
+                type: 'remove',
+                key: key
             };
-            self.postMessage(statusMessage);
+            postMessage(deleteMessage);
         }
-        const geometry = generateChunk(request.position, request.dimention, 1 / (1 << (2 - request.lod)));
-        chunkQueue.delete(key);
-        const dataMessage: DataMessage = {  
-            type: "data",
-            data: geometry,
-            request: request
-        }
-        self.postMessage(dataMessage);
     }
-    if (isRunning) {
+}
+
+async function generate(request: TileRequest): Promise<BufferGeometry> {
+    return generateChunk(request.position, request.dimention, 1 / (1 << (2 - request.lod)));
+}
+
+
+
+function run() {
+
+    const request = getNextTile();
+    if (request) {
+        isRunning = true;
+        generate(request).then(geometry => {
+            chunkQueue.delete(`${request.position}`);
+            const dataMessage: DataMessage = {
+                type: "data",
+                data: geometry,
+                request: request
+            }
+            self.postMessage(dataMessage);
+            setTimeout(run);
+        });
+    } else if (isRunning) {
         isRunning = false;
         let statusMessage: StatusMessage = {
             type: "status",
@@ -38,11 +70,19 @@ function generate() {
     }
 }
 
-self.onmessage = (e: MessageEvent<TileRequest>) => {
-    // console.log("new request")
-    const request = e.data;
-    chunkQueue.set(`${request.relativePosition}`, request);
-    if (!isRunning) generate();
-    // const geometry = generateChunk([request.position.x, request.position.y, request.position.z], request.dimention, 1 / (1 << (2 - request.lod)), { octaves: 5 + request.lod, type: "OpenSimplex2" });
-    // self.postMessage([geometry, request]);
+self.onmessage = (e: MessageEvent<DataMessage | PositionMessage>) => {
+    switch (e.data.type) {
+        case "data": {
+            const request: TileRequest = e.data.request;
+            chunkQueue.set(`${request.position}`, request);
+            if (!isRunning) run();
+        }
+            break;
+        case "position": {
+            referencePosition = e.data.pos;
+            cleanQueue();
+        }
+            break;
+    }
+
 };
