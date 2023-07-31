@@ -4,7 +4,7 @@ import { generateChunk } from "../terrain-gen/terrain-generator";
 import { TileRequest } from "../core/interfaces";
 import { DataMessage, PositionMessage, RemoveFromQueueMessage, StatusMessage } from "./types";
 import { BufferGeometry, Vector3, Vector3Tuple } from "three";
-import { getIdealLOD } from "./tile-manager";
+import { getIdealLOD } from "./helpers";
 import { CONFIG } from "../core/config";
 
 console.log("start worker")

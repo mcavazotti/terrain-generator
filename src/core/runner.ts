@@ -4,13 +4,14 @@ import { generateChunk } from "../terrain-gen/terrain-generator";
 import { PointerLockControls } from "../third_party/PointerLockControls"
 import GUI from "lil-gui";
 import { Tile, TileRequest } from "./interfaces";
-import { TileManager, getIdealLOD } from "../tile-manager/tile-manager";
+import { TileManager } from "../tile-manager/tile-manager";
 import { terrainFragmentShader } from "../auxiliary/shaders/terrain.frag.glsl";
 import { terrainVertexShader } from "../auxiliary/shaders/terrain.vert.glsl";
 import { skyFragmentShader } from "../auxiliary/shaders/sky.frag.glsl";
 import { skyVertexShader } from "../auxiliary/shaders/sky.vert.glsl";
 
 import { CONFIG } from './config'
+import { getIdealLOD } from "../tile-manager/helpers";
 
 
 export class Runner {
