@@ -1,4 +1,4 @@
-import { AmbientLight, AxesHelper, BackSide, BufferAttribute, BufferGeometry, CameraHelper, Color, DirectionalLight, DirectionalLightHelper,  FrontSide, GLSL3, GridHelper, Material, Mesh, MeshStandardMaterial, PerspectiveCamera, Scene, ShaderMaterial, SphereGeometry, UniformsLib, Vector2Tuple, Vector3, Vector3Tuple, WebGLRenderer } from "three";
+import { AmbientLight, BackSide, BufferAttribute, BufferGeometry, CameraHelper, Color, DirectionalLight, DirectionalLightHelper,  FrontSide, GLSL3, GridHelper, Material, Mesh, MeshStandardMaterial, PerspectiveCamera, Scene, ShaderMaterial, SphereGeometry, UniformsLib, Vector2Tuple, Vector3, Vector3Tuple, WebGLRenderer } from "three";
 import { OrbitControls } from "../third_party/OrbitControls";
 import { generateChunk } from "../terrain-gen/terrain-generator";
 import { PointerLockControls } from "../third_party/PointerLockControls"
@@ -27,7 +27,7 @@ export class Runner {
     // private tileDim: Vector3Tuple = [256, 512, 256];
     private tileDim: Vector3Tuple = [56, 512, 56];
 
-    private numTiles: number = 51;
+    private numTiles: number = 21;
     private tiles: (Tile | null)[][] = [];
 
     private material: ShaderMaterial;
@@ -36,7 +36,7 @@ export class Runner {
         return new Vector3(Math.floor(this.camera.position.x / this.tileDim[0]) * this.tileDim[0], 0, Math.floor(this.camera.position.z / this.tileDim[2]) * this.tileDim[2]);
     }
 
-    private referencePosHelper: AxesHelper;
+    // private referencePosHelper: AxesHelper;
 
     private skyDome: Mesh<BufferGeometry, ShaderMaterial>;
 
@@ -124,9 +124,9 @@ export class Runner {
         const cameraHelper = new CameraHelper(this.camera);
         this.scene.add(cameraHelper);
 
-        this.referencePosHelper = new AxesHelper(5);
-        this.referencePosHelper.position.set(...this.cameraReferencePos.toArray());
-        this.scene.add(this.referencePosHelper);
+        // this.referencePosHelper = new AxesHelper(5);
+        // this.referencePosHelper.position.set(...this.cameraReferencePos.toArray());
+        // this.scene.add(this.referencePosHelper);
 
         const guiControls = {
             switchCamera: () => {
@@ -204,15 +204,15 @@ export class Runner {
         }
         this.manageTiles();
 
-        this.referencePosHelper.position.set(...this.cameraReferencePos.toArray());
-        this.skyDome.position.set(...this.camera.position.toArray());
+        // this.referencePosHelper.position.set(...this.cameraReferencePos.toArray());
+        // this.skyDome.position.set(...this.camera.position.toArray());
         this.renderer.render(this.scene, this.useAux ? this.auxCamera : this.camera);
         requestAnimationFrame(this.loop.bind(this));
     }
 
     private manageTiles() {
         if (!this.tiles[Math.floor(this.numTiles / 2)][Math.floor(this.numTiles / 2)]) {
-            const geometry = generateChunk([this.cameraReferencePos.x, -this.tileDim[1] / 2, this.cameraReferencePos.z], this.tileDim, 1, { octaves: 7, type: "Perlin" });
+            const geometry = generateChunk([this.cameraReferencePos.x, -this.tileDim[1] / 2, this.cameraReferencePos.z], this.tileDim, 1);
             const mesh = new Mesh(geometry, this.material);
             mesh.castShadow = true;
             mesh.receiveShadow = true;

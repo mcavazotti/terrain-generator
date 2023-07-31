@@ -19,7 +19,7 @@ function generate() {
             };
             self.postMessage(statusMessage);
         }
-        const geometry = generateChunk(request.position, request.dimention, 1 / (1 << (2 - request.lod)), { octaves: 7, type: "Perlin" });
+        const geometry = generateChunk(request.position, request.dimention, 1 / (1 << (2 - request.lod)));
         chunkQueue.delete(key);
         const dataMessage: DataMessage = {  
             type: "data",
