@@ -2,3 +2,20 @@ html,
 body {
   margin: 0;
 }
+
+#loading.show {
+  display: flex;
+}
+
+#loading {
+  display: none;
+  position: absolute;
+  height: 100%;
+  width: 100%;
+  /* align-content: center; */
+  justify-content: center;
+  align-items: center;
+  background-color: #00000066;
+  color: white;
+  font-family: system-ui;
+}

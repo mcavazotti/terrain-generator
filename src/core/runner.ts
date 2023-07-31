@@ -210,7 +210,14 @@ export class Runner {
             this.movement.clone().applyQuaternion(this.camera.quaternion);
             this.camera.position.addScaledVector(this.movement.clone().applyQuaternion(this.camera.quaternion).normalize().multiplyScalar(25), deltaTime);
         }
-        this.manageTiles();
+
+        if (!this.tiles[Math.floor(CONFIG.numTiles / 2)][Math.floor(CONFIG.numTiles / 2)]) {
+            this.showLoading();
+            setTimeout(this.manageTiles.bind(this));
+        } else {
+            this.hideLoading();
+            this.manageTiles();
+        }
 
         // this.referencePosHelper.position.set(...this.cameraReferencePos.toArray());
         this.skyDome.position.set(...this.camera.position.toArray());
@@ -220,6 +227,7 @@ export class Runner {
 
     private manageTiles() {
         if (!this.tiles[Math.floor(CONFIG.numTiles / 2)][Math.floor(CONFIG.numTiles / 2)]) {
+            
             const geometry = generateChunk([this.cameraReferencePos.x, -CONFIG.tileDim[1] / 2, this.cameraReferencePos.z], CONFIG.tileDim, 1);
             const mesh = new Mesh(geometry, this.material);
             mesh.castShadow = true;
@@ -232,6 +240,7 @@ export class Runner {
                 position: new Vector3(this.cameraReferencePos.x, -CONFIG.tileDim[1] / 2, this.cameraReferencePos.z)
             };
             this.scene.add(this.tiles[Math.floor(CONFIG.numTiles / 2)][Math.floor(CONFIG.numTiles / 2)]!.mesh);
+            this.hideLoading();
         }
         const relativePos = this.tileRelativePos(this.tiles[Math.floor(CONFIG.numTiles / 2)][Math.floor(CONFIG.numTiles / 2)]!.position);
         // console.log(relativePos);
@@ -360,5 +369,14 @@ export class Runner {
             };
             this.scene.add(this.tiles[z][x]!.mesh);
         }
+    }
+
+
+    private showLoading() {
+        document.getElementById('loading')!.classList.add('show');
+    }
+    private hideLoading() {
+        document.getElementById('loading')!.classList.remove('show');
+
     }
 }
