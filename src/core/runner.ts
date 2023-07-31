@@ -99,7 +99,9 @@ export class Runner {
                 snowColor: { value: new Color(0.9, 0.9, 0.9) },
                 limitSlope: { value: 60 },
                 heightTransition: { value: 300 },
-                lightDir: { value: light.getWorldDirection(new Vector3()) }
+                lightDir: { value: light.getWorldDirection(new Vector3()) },
+                nearPlane: {value: this.camera.near},
+                farPlane: {value: this.camera.far},
             }
         });
 
