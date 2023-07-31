@@ -321,7 +321,6 @@ export class Runner {
 
 
         const request = data[1];
-        const requestId = `${request.lod}-${request.position}`;
         // console.log('completed: ', requestId);
 
 
