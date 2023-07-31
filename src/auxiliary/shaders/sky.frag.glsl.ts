@@ -12,8 +12,8 @@ uniform vec3 lightDir;
 out vec4 fragColor;
 
 void main() {
-    float incidenceAngle = clamp(dot(-lightDir, n),0.0,1.0);
-    float incidenceCos = dot(-lightDir, n);
+    float incidenceAngle = clamp(dot(normalize(lightDir), normalize(n)),0.0,1.0);
+    float incidenceCos = dot(normalize(lightDir), normalize(n));
     float v = 1.0;
 
     #pragma unroll_loop_start 

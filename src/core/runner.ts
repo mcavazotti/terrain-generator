@@ -20,7 +20,7 @@ export class Runner {
     private auxCamera: PerspectiveCamera;
     private cameraControl: PointerLockControls;
     private auxCameraControl: OrbitControls;
-    private tileManager: TileManager = new TileManager();
+    private tileManager: TileManager = new TileManager((navigator.hardwareConcurrency ?? 4) - 1);
     private useAux = true;
     private wireframe = false;
     private prevTimestamp!: number;
@@ -89,7 +89,7 @@ export class Runner {
         this.scene.add(ambient);
         const light = new DirectionalLight(CONFIG.light.directionalColor);
         light.position.set(...CONFIG.light.position);
-        this.camera.add(new DirectionalLightHelper(light))
+        this.scene.add(new DirectionalLightHelper(light))
         this.scene.add(light);
         this.scene.add(new GridHelper(10, 11));
 
@@ -108,7 +108,7 @@ export class Runner {
                 heightTransition: { value: CONFIG.shaderUniforms.heightTransition },
                 lightDir: { value: light.getWorldDirection(new Vector3()) },
                 nearPlane: { value: this.camera.near },
-                farPlane: { value: this.camera.far / 2},
+                farPlane: { value: this.camera.far / 2 },
             }
         });
 
@@ -121,7 +121,7 @@ export class Runner {
                 ...UniformsLib.lights,
                 skyColor: { value: CONFIG.shaderUniforms.skyColor },
                 nightSkyColor: { value: CONFIG.shaderUniforms.nightSkyColor },
-                lightDir: { value: light.getWorldDirection(new Vector3()) }
+                lightDir: { value: light.position }
             }
         }));
 
@@ -207,7 +207,7 @@ export class Runner {
         if (/*!this.useAux &&*/ this.movement.lengthSq()) {
 
             this.movement.clone().applyQuaternion(this.camera.quaternion);
-            this.camera.position.addScaledVector(this.movement.clone().applyQuaternion(this.camera.quaternion).normalize().multiplyScalar(100), deltaTime);
+            this.camera.position.addScaledVector(this.movement.clone().applyQuaternion(this.camera.quaternion).normalize().multiplyScalar(25), deltaTime);
         }
         this.manageTiles();
 

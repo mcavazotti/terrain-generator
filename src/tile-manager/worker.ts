@@ -15,12 +15,12 @@ var referencePosition: Vector3Tuple = [0, 0, 0];
 
 function getNextTile(): TileRequest | null {
     return [...chunkQueue.values()].sort((a, b) => {
-        let diff = a.lod - b.lod;
-        if (!diff) {
-            const dist1 = Math.abs(referencePosition[0] - a.position[0]) + Math.abs(referencePosition[2] - a.position[2]);
-            const dist2 = Math.abs(referencePosition[0] - b.position[0]) + Math.abs(referencePosition[2] - b.position[2]);
-            diff = dist1 - dist2;
-        }
+
+        // if (!diff) {
+        const dist1 = Math.abs(referencePosition[0] - a.position[0]) + Math.abs(referencePosition[2] - a.position[2]);
+        const dist2 = Math.abs(referencePosition[0] - b.position[0]) + Math.abs(referencePosition[2] - b.position[2]);
+        let diff = (dist1 + (CONFIG.tileDim[0] + CONFIG.tileDim[2]) * a.lod * 1.75) - (dist2 + (CONFIG.tileDim[0] + CONFIG.tileDim[2]) * b.lod * 1.75);
+        // }
         return diff;
     })[0] ?? null;
 }
