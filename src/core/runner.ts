@@ -21,7 +21,7 @@ export class Runner {
     private auxCamera: PerspectiveCamera;
     private cameraControl: PointerLockControls;
     private auxCameraControl: OrbitControls;
-    private tileManager: TileManager = new TileManager((navigator.hardwareConcurrency ?? 4) - 1);
+    private tileManager: TileManager = new TileManager(Math.max((navigator.hardwareConcurrency ?? 4) - 2, 1));
     private useAux = true;
     private wireframe = false;
     private prevTimestamp!: number;
@@ -227,8 +227,8 @@ export class Runner {
 
     private manageTiles() {
         if (!this.tiles[Math.floor(CONFIG.numTiles / 2)][Math.floor(CONFIG.numTiles / 2)]) {
-            
-            const geometry = generateChunk([this.cameraReferencePos.x, -CONFIG.tileDim[1] / 2, this.cameraReferencePos.z], CONFIG.tileDim, 1);
+
+            const geometry = generateChunk([this.cameraReferencePos.x, -CONFIG.tileDim[1] / 2, this.cameraReferencePos.z], CONFIG.tileDim, 0.5);
             const mesh = new Mesh(geometry, this.material);
             mesh.castShadow = true;
             mesh.receiveShadow = true;
